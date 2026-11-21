@@ -79,39 +79,39 @@ list(FILTER PDFTEX_SOURCES EXCLUDE REGEX
 
 
 # Define the standalone executable
-#add_executable(
-#        pdflatex
-#        ${KPATHSEA_SOURCES}
-#        ${CPP_DIR}/pdftex/texmfmp.c
-#        ${LIBPNG_SOURCES}
-#        ${WEB2CSRC_SOURCES}
-#        ${WEB2C_SOURCES}
-#        ${XPDF_SOURCES}
-#        ${PDFTEX_SOURCES}
-#)
+add_executable(
+        pdflatex
+        ${KPATHSEA_SOURCES}
+        ${CPP_DIR}/pdftex/texmfmp.c
+        ${LIBPNG_SOURCES}
+        ${WEB2CSRC_SOURCES}
+        ${WEB2C_SOURCES}
+        ${XPDF_SOURCES}
+        ${PDFTEX_SOURCES}
+)
 
 
-#target_compile_definitions(pdflatex PRIVATE
-#        pdfTeX=1
-#        __SyncTeX__=1
-#        TeX=1
-#        SYNCTEX_ENGINE_H="synctex-pdftex.h"
-#        PNG_ARM_NEON_OPT=0
-#)
+target_compile_definitions(pdflatex PRIVATE
+        pdfTeX=1
+        __SyncTeX__=1
+        TeX=1
+        SYNCTEX_ENGINE_H="synctex-pdftex.h"
+        PNG_ARM_NEON_OPT=0
+)
 
 # Compiler options
-#target_compile_options(pdflatex PRIVATE
-#        -O3
-#        -fPIC
-#        -Wall
-#        -Wno-unused-variable
-#        -Wno-unused-function
-#)
+target_compile_options(pdflatex PRIVATE
+        -O3
+        -fPIC
+        -Wall
+        -Wno-unused-variable
+        -Wno-unused-function
+)
 
 # Link against system libraries, compression, and logging
-#target_link_libraries(
-#        pdflatex
-#        m
-#        z
-#        log
-#)
+target_link_libraries(
+        pdflatex
+        m
+        z
+        log
+)
