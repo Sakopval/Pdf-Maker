@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_nm">PDF Maker</string>
+    <string name="no_docs_msg">You don\'t have any documents</string>
+    <string name="make_one_txt">Make one</string>
+    <string name="tab_1">PDFS</string>
+    <string name="tab_2">Tex</string>
+    <string name="text_editor">Text Editor</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="editor">Editor</string>
+    <string name="app">App</string>
+    <string name="search">Search</string>
+    <string name="latex">LaTeX</string>
+    <string name="compiler">Compiler:</string>
+    <string name="latex_item">latex</string>
+    <string name="add_a_package">Add a package</string>
+    <string name="remove_latex">Remove LaTex</string>
+    <string name="reset_dir_tree">Reset LaTeX Directory Tree</string>
+    <string name="assets">Assets</string>
+    <string name="app_settings">App</string>
+    <string name="themes">Themes</string>
+    <string name="Import">Import</string>
+    <string name="delete">Delete</string>
+    <string name="view">View</string>
+    <string name="work_spaces">Work Spaces</string>
+    <string name="all_work_spaces">All Work Spaces</string>
+    <string name="rename">Rename</string>
+    <string name="dark">Dark</string>
+    <string name="show_version">PdfTeX Version</string>
+    <string name="build_format_files">Build Format Files</string>
+    <string name="compile">Compile</string>
+    <string name="edit">Edit</string>
+    <string name="build_ls_r_files">Build ls-R Files</string>
+    <string name="you_don_t_have_any_workspaces_yet">You don\'t have any workspaces yet</string>
+    <string name="loading">Loading...</string>
+    <string name="you_don_t_have_any_logs">You don\'t have any logs</string>
+    <string name="logs">Logs</string>
+    <string name="all_logs">All Logs</string>
+    <string name="no_matches_found">No Matches Found</string>
+    <string name="new_name">New Name</string>
+    <string name="xetex_version">XeTeX Version</string>
+    <string name="add_a_font">Add a Font</string>
+    <string name="run_with_kpathsea_depug">Run with Kpathsea Depug</string>
+    <string name="new_workspace_name">New WorkSpace Name</string>
+    <string name="new_workspace">New WorkSpace</string>
+    <string name="you_don_t_have_any_packages">You don\'t have any packages</string>
+    <string name="packages">Packages</string>
+    <array name="compilers_list">
+        <item>pdflatex</item>
+<!--        <item>latex</item>-->
+        <item>xelatex</item>
+<!--        <item>lualatex</item>-->
+<!--        <item>latexmk</item>-->
+    </array>
+    <array name="themes">
+        <item>Light</item>
+        <item>Dark</item>
+    </array>
+</resources>

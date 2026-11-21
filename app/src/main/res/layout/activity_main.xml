@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker"
+    android:layoutDirection="ltr">
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/drawer_lay">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/coordinator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
+
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarLay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            app:liftOnScroll="false"
+            android:theme="@style/Widget.Material3.AppBarLayout.PdfMaker">
+
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/toolBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    app:layout_scrollEffect="none"
+                    app:navigationIcon="@drawable/menu_ic"
+                    app:title="@string/app_nm"
+                    app:menu="@menu/side_menu"/>
+
+                <com.google.android.material.search.SearchBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/srch_bar"
+                    app:layout_scrollEffect="none"
+                    app:liftOnScrollColor="@color/srch_bkg"
+                    app:liftOnScroll="true"
+                    android:visibility="visible" />
+
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <com.google.android.material.search.SearchView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/srch_view"
+            android:fitsSystemWindows="true"
+            android:hint="@string/search"
+            app:layout_behavior="com.google.android.material.search.SearchView$Behavior"
+            app:layout_anchor="@id/srch_bar"
+            android:theme="@style/ThemeOverlay.Material3Expressive.SearchView.AppBarWithSearch.PdfMaker"
+            android:visibility="visible">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/no_matches"
+                        android:text="@string/no_matches_found"
+                        android:background="@android:color/transparent"
+                        android:layout_centerInParent="true"
+                        android:visibility="gone"/>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:nestedScrollingEnabled="true"
+                        android:id="@+id/matches_list"
+                        android:visibility="visible"/>
+                </RelativeLayout>
+        </com.google.android.material.search.SearchView>
+        <FrameLayout
+            android:id="@+id/framelay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:nestedScrollingEnabled="true"
+            app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:tabBackground="@drawable/tablay_shape"/>
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/viewPager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:nestedScrollingEnabled="true"/>
+            </LinearLayout>
+        </FrameLayout>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <com.google.android.material.navigation.NavigationView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:id="@+id/navigation_view"
+            app:headerLayout="@layout/drawer_header"
+            app:menu="@menu/drawer_menu"/>
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:background="@color/loading_bkg"
+        android:fitsSystemWindows="true"
+        android:id="@+id/loading_lay"
+        android:visibility="gone">
+        <com.google.android.material.loadingindicator.LoadingIndicator
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:fitsSystemWindows="true"
+            android:backgroundTint="@android:color/transparent"
+            android:id="@+id/loading"
+            android:visibility="gone"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="hello"
+            android:layout_below="@id/loading"
+            android:layout_centerHorizontal="true"
+            android:id="@+id/state_text"
+            android:visibility="gone"
+            />
+    </RelativeLayout>
+
+
+</RelativeLayout>

@@ -1,0 +1,122 @@
+plugins {
+    id 'com.android.application'
+    id 'androidx.room3'
+    id 'com.google.dagger.hilt.android'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    ndkVersion "29.0.14033849"
+    ndkPath "D:\\Android\\Sdk\\ndk\\29.0.14033849"
+    namespace "com.example.pdfmaker"
+    compileSdk 36
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+    defaultConfig {
+        applicationId "com.example.pdfmaker"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_STL=c++_static"
+                arguments "-Wl,--error-limit=0"
+                version "4.1.2"
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path = project.file("src/main/cpp/CMakeLists.txt")
+            version "4.1.2"
+        }
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+    room3 {
+        schemaDirectory "$projectDir/schemas"
+    }
+    buildFeatures{
+        viewBinding true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+        }
+    }
+}
+
+dependencies {
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.sqlite.framework
+    implementation libs.material
+    implementation libs.androidx.viewpager2
+    implementation libs.androidx.core.splashscreen
+    implementation libs.androidx.documentfile
+    implementation libs.commons.compress
+    implementation libs.xz
+    implementation libs.androidx.dynamicanimation
+    testImplementation libs.junit
+    implementation libs.androidx.room.runtime
+    ksp libs.androidx.room.compiler
+    implementation libs.hilt.android
+    ksp libs.hilt.compiler
+    implementation libs.androidx.lifecycle.livedata
+
+    implementation project(path: ":xededitor")
+    implementation project(path: ":xedcore:main")
+    implementation project(path: ":core")
+}
+
+//tasks.register("copyNativeBinary", Copy) {
+//    dependsOn 'generateJsonModelDebug', 'externalNativeBuildDebug'
+//
+//    from ("$projectDir/build/intermediates/cxx/Debug/"){
+//        include("**/arm64-v8a/**/pdflatex")
+//        include("**/armeabi-v7a/**/pdflatex")
+//        include("**/x86/**/pdflatex")
+//        include("**/x86_64/**/pdflatex")
+//    }
+//
+//    into "$projectDir/src/main/jniLibs/"
+//
+//    eachFile { details ->
+//        String path = details.sourcePath
+//        if (path.contains("arm64-v8a")) {
+//            details.relativePath = new org.gradle.api.file.RelativePath(true, "arm64-v8a", "pdflatex.so")
+//        } else if (path.contains("armeabi-v7a")) {
+//            details.relativePath = new org.gradle.api.file.RelativePath(true, "armeabi-v7a", "pdflatex.so")
+//        } else if (path.contains("x86_64")) {
+//            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86_64", "pdflatex.so")
+//        } else if (path.contains("x86")) {
+//            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86", "pdflatex.so")
+//        } else {
+//            details.exclude()
+//        }
+//    }
+//
+//    includeEmptyDirs = false
+//}
+//
+//// Hook the copy task into the Android build pipeline so it runs automatically on every build
+//tasks.configureEach { task ->
+//    if (task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders') {
+//        task.dependsOn 'copyNativeBinary'
+//    }
+//}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools">
+    <item android:title="@string/work_spaces" android:enabled="false">
+        <menu>
+            <item android:title="@string/all_work_spaces" android:id="@+id/workspaces" />
+        </menu>
+    </item>
+    <item android:title="@string/logs" android:enabled="false">
+        <menu>
+            <item android:id="@+id/logs"
+                android:title="@string/all_logs" />
+        </menu>
+    </item>
+    <item android:title="@string/packages" android:enabled="false">
+        <menu>
+            <item android:id="@+id/pkgs"
+                android:title="@string/packages" />
+        </menu>
+    </item>
+    <item android:title="@string/editor" android:enabled="false">
+        <menu>
+            <item android:id="@+id/txt_editor"
+                android:title="@string/text_editor" />
+        </menu>
+    </item>
+    <item android:title="@string/app" android:enabled="false">
+    <menu>
+        <item android:title="@string/settings" android:id="@+id/settings" android:icon="@drawable/ic_settings"/>
+        <item android:id="@+id/about" android:title="@string/about" android:icon="@drawable/ic_info"/>
+    </menu>
+    </item>
+</menu>
