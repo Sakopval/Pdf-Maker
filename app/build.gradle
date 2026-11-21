@@ -84,39 +84,39 @@ dependencies {
     implementation project(path: ":core")
 }
 
-//tasks.register("copyNativeBinary", Copy) {
-//    dependsOn 'generateJsonModelDebug', 'externalNativeBuildDebug'
-//
-//    from ("$projectDir/build/intermediates/cxx/Debug/"){
-//        include("**/arm64-v8a/**/pdflatex")
-//        include("**/armeabi-v7a/**/pdflatex")
-//        include("**/x86/**/pdflatex")
-//        include("**/x86_64/**/pdflatex")
-//    }
-//
-//    into "$projectDir/src/main/jniLibs/"
-//
-//    eachFile { details ->
-//        String path = details.sourcePath
-//        if (path.contains("arm64-v8a")) {
-//            details.relativePath = new org.gradle.api.file.RelativePath(true, "arm64-v8a", "pdflatex.so")
-//        } else if (path.contains("armeabi-v7a")) {
-//            details.relativePath = new org.gradle.api.file.RelativePath(true, "armeabi-v7a", "pdflatex.so")
-//        } else if (path.contains("x86_64")) {
-//            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86_64", "pdflatex.so")
-//        } else if (path.contains("x86")) {
-//            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86", "pdflatex.so")
-//        } else {
-//            details.exclude()
-//        }
-//    }
-//
-//    includeEmptyDirs = false
-//}
-//
-//// Hook the copy task into the Android build pipeline so it runs automatically on every build
-//tasks.configureEach { task ->
-//    if (task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders') {
-//        task.dependsOn 'copyNativeBinary'
-//    }
-//}
+tasks.register("copyNativeBinary", Copy) {
+    dependsOn 'generateJsonModelDebug', 'externalNativeBuildDebug'
+
+    from ("$projectDir/build/intermediates/cxx/Debug/"){
+        include("**/arm64-v8a/**/pdflatex")
+        include("**/armeabi-v7a/**/pdflatex")
+        include("**/x86/**/pdflatex")
+        include("**/x86_64/**/pdflatex")
+    }
+
+    into "$projectDir/src/main/jniLibs/"
+
+    eachFile { details ->
+        String path = details.sourcePath
+        if (path.contains("arm64-v8a")) {
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "arm64-v8a", "pdflatex.so")
+        } else if (path.contains("armeabi-v7a")) {
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "armeabi-v7a", "pdflatex.so")
+        } else if (path.contains("x86_64")) {
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86_64", "pdflatex.so")
+        } else if (path.contains("x86")) {
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86", "pdflatex.so")
+        } else {
+            details.exclude()
+        }
+    }
+
+    includeEmptyDirs = false
+}
+
+// Hook the copy task into the Android build pipeline so it runs automatically on every build
+tasks.configureEach { task ->
+    if (task.name == 'mergeDebugJniLibFolders' || task.name == 'mergeReleaseJniLibFolders') {
+        task.dependsOn 'copyNativeBinary'
+    }
+}
