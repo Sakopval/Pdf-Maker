@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
 //        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+//        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildFeatures {
@@ -61,7 +61,7 @@ dependencies {
     compileOnly(projects.editor)
     compileOnly(projects.onigurumaNative)
 
-    implementation(libs.gson)
+//    implementation(libs.gson)
     implementation(libs.jcodings)
     implementation(libs.joni)
 
