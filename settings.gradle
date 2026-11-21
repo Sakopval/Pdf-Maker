@@ -1,0 +1,57 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+
+includeBuild("soraX") {
+    dependencySubstitution {
+        substitute(module("soraX:editor")).using(project(":editor"))
+        substitute(module("soraX:editor-lsp")).using(project(":editor-lsp"))
+        substitute(module("soraX:language-textmate")).using(project(":language-textmate"))
+        substitute(module("soraX:oniguruma-native")).using(project(":oniguruma-native"))
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = uri("https://jitpack.io") }
+    }
+
+    versionCatalogs {
+        libs {
+            files("../gradle/libs.versions.toml")
+        }
+    }
+
+}
+
+
+rootProject.name = "Pdfmaker"
+include(":app")
+include ':core'
+include(":xededitor")
+include(":baselineprofile")
+//include(":features:runner")
+include(":features:extensions")
+include(":xedcore:main")
+include(":xedcore:resources")
+include(":xedcore:components")
+//include(":soraX")
+//include(":soraX:editor")
+//include(":soraX:editor-lsp")
+//include(":soraX:language-textmate")
+//include(":soraX:oniguruma-native")
+
+
+
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
