@@ -7,7 +7,8 @@
     android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker"
     tools:context=".PkgActivity"
     tools:viewBindingIgnore="false"
-    android:id="@+id/pkgs_activity">
+    android:id="@+id/pkgs_activity"
+    android:background="@color/bkg">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"

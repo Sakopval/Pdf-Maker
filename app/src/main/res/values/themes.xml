@@ -2,13 +2,10 @@
 <resources>
     <style name="Theme.Material3.Dark.NoActionBar.PdfMaker" parent="Theme.Material3.Dark.NoActionBar">
         <item name="android:fitsSystemWindows">false</item>
-        <item name="android:background">@color/bkg</item>
         <item name="fontFamily">@font/arlrdbd</item>
-        <item name="android:textColor">@color/txt</item>
         <item name="materialButtonStyle">@style/Widget.Material3.Button.PdfMaker</item>
         <item name="materialSearchBarStyle">@style/Widget.Material3.SearchBar.PdfMaker</item>
         <item name="toolbarStyle">@style/Widget.Material3.SearchView.Toolbar.PdfMaker</item>
-        <item name="rippleColor">@android:color/darker_gray</item>
 
         <item name="colorPrimary">@color/btn_col</item>
         <item name="colorOnPrimary">@color/md_dark_on_primary</item>

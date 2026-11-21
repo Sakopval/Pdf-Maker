@@ -6,7 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker"
     android:id="@+id/settingsActivity"
-    tools:context=".SettingsActivity">
+    tools:context=".SettingsActivity"
+    android:background="@color/bkg">
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"

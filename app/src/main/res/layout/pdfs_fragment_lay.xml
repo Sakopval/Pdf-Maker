@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker">
+    android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker"
+    android:background="@color/bkg">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
