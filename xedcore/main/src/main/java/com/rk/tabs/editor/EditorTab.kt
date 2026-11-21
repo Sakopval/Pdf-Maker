@@ -1,0 +1,841 @@
+package com.rk.tabs.editor
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.FileTools
+import com.example.core.db.AppDataBase
+import com.example.core.db.FileEntity
+import com.rk.activities.main.MainActivity
+import com.rk.activities.main.MainViewModel
+import com.rk.activities.main.session.DiskState
+import com.rk.activities.main.session.DocumentState
+import com.rk.activities.main.session.DocumentStateDatabase
+import com.rk.activities.main.session.EditorTabState
+import com.rk.activities.main.session.TabState
+import com.rk.activities.main.ui.searchViewModel
+import com.rk.color.ColorPicker
+import com.rk.components.SingleInputDialog
+import com.rk.editor.intelligent.IntelligentFeatureRegistry
+import com.rk.events.EditorTabEvent
+import com.rk.events.Events
+import com.rk.extension.api.XedExtensionPoint
+import com.rk.file.FileObject
+import com.rk.file.FileTypeManager
+import com.rk.file.FileWrapper
+import com.rk.lsp.LspConnector
+import com.rk.resources.drawables
+import com.rk.resources.getString
+import com.rk.resources.strings
+import com.rk.search.EditorSearchPanel
+import com.rk.search.FindingsDialog
+import com.rk.settings.Settings
+import com.rk.settings.editor.refreshEditorSettings
+import com.rk.settings.support.handleSupport
+import com.rk.tabs.base.Tab
+import com.rk.utils.errorDialog
+import com.rk.utils.hasBinaryChars
+import io.github.rosemoe.sora.text.Content
+import io.github.rosemoe.sora.text.ContentIO
+import java.nio.charset.Charset
+import java.nio.file.Paths
+import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import org.ec4j.core.Cache.Caches
+import org.ec4j.core.EditorConfigLoader
+import org.ec4j.core.Resource
+import org.ec4j.core.ResourcePath
+import org.ec4j.core.ResourceProperties
+import org.ec4j.core.ResourcePropertiesService
+import org.ec4j.core.model.PropertyType
+import org.junit.Before
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@OptIn(DelicateCoroutinesApi::class)
+open class EditorTab(
+    override var file: FileObject?,
+    override var projectRoot: FileObject?,
+    override var scopeRoot: FileObject? = null,
+    val viewModel: MainViewModel,
+    isReadOnly: Boolean = false,
+    private val customTitle: String? = null,
+    val fallbackExtension: String = "txt",
+    initialContent: Content? = null,
+    @Volatile private var diskState: DiskState? = null,
+) : Tab() {
+
+    var isReadOnly: Boolean = isReadOnly
+        private set
+
+    val isTemp: Boolean
+        get() = file == null && !isReadOnly
+
+    private var autoSaveJob: Job? = null
+    private var activeTasks = mutableStateSetOf<String>()
+
+    private var charset = Charset.forName(Settings.encoding)
+    var lspConnector: LspConnector? = null
+
+    override val icon: ImageVector
+        get() = Icons.Outlined.Edit
+
+    override val name: String
+        get() = strings.editor.getString()
+
+    override val floatPadding: Dp
+        get() {
+            val extraKeysPadding = if (Settings.split_extra_keys) 88.dp else 48.dp
+            return if (Settings.show_extra_keys) extraKeysPadding else 0.dp
+        }
+
+    val scope = CoroutineScope(Dispatchers.Default)
+
+    override var title by mutableStateOf(customTitle ?: file?.getName() ?: strings.temp_file.getString())
+
+    val editorState by mutableStateOf(CodeEditorState(initialContent))
+
+    override fun onTabAdded() {
+        scope.launch(Dispatchers.Main) { restoreDocumentState() }
+    }
+
+    override fun onTabRemoved() {
+        saveDocumentState()
+        autoSaveJob?.cancel()
+        scope.cancel()
+        editorState.content = null
+        editorState.editor.get()?.apply {
+            setText("")
+            release()
+        }
+        GlobalScope.launch(Dispatchers.IO) { lspConnector?.disconnect() }
+    }
+
+    override fun onTabSelected() {
+        editorState.editor.get()?.apply {
+            requestFocus()
+            requestFocusFromTouch()
+        }
+    }
+
+    override fun onTabUnselected() {
+        editorState.editor.get()?.clearFocus()
+    }
+
+    override fun onDuplicate(tab: Tab) {
+        if (tab is EditorTab) {
+            scope.launch(Dispatchers.Main) {
+                tab.editorState.contentLoaded.await()
+
+                val newContent = tab.editorState.content
+                if (newContent != null && !editorState.isDirty && newContent != editorState.content) {
+                    editorState.updateLock.withLock {
+                        editorState.content = newContent
+                        editorState.editor.get()?.setText(newContent)
+                        editorState.updateUndoRedo()
+                        editorState.isDirty = false
+                    }
+                }
+            }
+        }
+    }
+
+    init {
+        scope.launch {
+            val file = file
+            if (file == null) {
+                editorState.contentLoaded.complete(Unit)
+                editorState.editable = !isReadOnly
+                editorState.textmateScope = FileTypeManager.fromExtension(fallbackExtension).textmateScope
+                return@launch
+            }
+
+            scope.launch(Dispatchers.IO) {
+                val parent = file.getParentFile()
+                val titleAlreadyExists = viewModel.tabs.any { it.title == title && it != this@EditorTab }
+
+                if (titleAlreadyExists && parent != null) {
+                    withContext(Dispatchers.Main) { title = "${parent.getName()}/$title" }
+                }
+            }
+
+            if (!file.exists() || !file.canRead()) return@launch
+            if (!file.canWrite()) {
+                this@EditorTab.isReadOnly = true
+            }
+
+            projectRoot = projectRoot ?: file.getParentFile()
+
+            editorState.editable = !isReadOnly && !Settings.read_only_default
+            if (editorState.textmateScope == null) {
+                editorState.textmateScope = FileTypeManager.fromFileName(file.getName()).textmateScope
+            }
+
+            loadEditorConfig()
+
+            if (diskState == null) {
+                diskState = readDiskState(file)
+            }
+
+            if (editorState.content == null) {
+                withContext(Dispatchers.IO) {
+                    runCatching {
+                        withTask {
+                            editorState.content = file.getInputStream().use { ContentIO.createFrom(it, charset) }
+
+                            if (Settings.detect_bin_files && hasBinaryChars(editorState.content.toString())) {
+                                editorState.editable = false
+                                showNotice(BINARY_NOTICE_KEY) { id -> BinaryNotice(id) }
+                            }
+                        }
+                    }
+                        .onFailure { errorDialog(throwable = it) }
+                }
+            }
+            editorState.contentLoaded.complete(Unit)
+        }
+    }
+
+    companion object {
+        private const val BINARY_NOTICE_KEY = "binary_file"
+        private const val EDITORCONFIG_NOTICE_KEY = "editorconfig_changed"
+
+        const val FORMAT_DOCUMENT_TASK_ID = "format_document"
+        const val LAYOUT_BUSY_TASK_ID = "layout_busy"
+        const val LSP_CONNECTING_TASK_ID = "connecting_lsp"
+    }
+
+    @Composable
+    private fun BinaryNotice(id: String) {
+        EditorNotice(
+            stringResource(strings.binary_file_notice),
+            actionButton = {
+                IconButton(onClick = { removeNotice(id) }) {
+                    Icon(
+                        painter = painterResource(drawables.close),
+                        contentDescription = stringResource(strings.close),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+        )
+    }
+
+    @Composable
+    private fun EditorConfigNotice(id: String) {
+        EditorNotice(
+            text = stringResource(strings.editorconfig_changed),
+            actionButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            save()
+                            refreshEditorSettings()
+                            removeNotice(id)
+                        }
+                    }
+                ) {
+                    Text(stringResource(strings.apply))
+                }
+            },
+        )
+    }
+
+    @XedExtensionPoint
+    fun showNotice(id: String, notice: @Composable (String) -> Unit) {
+        if (editorState.notices.value.containsKey(id)) return
+        editorState.addNotice(id, notice)
+    }
+
+    @XedExtensionPoint
+    fun removeNotice(id: String) {
+        editorState.removeNotice(id)
+    }
+
+    /** Refresh all normal editor settings and EditorConfig settings and apply them to the editor */
+    suspend fun reapplyEditorSettings() {
+        val editor = editorState.editor.get()
+        editor?.apply {
+            applySettings()
+
+            if (file != null) {
+                loadEditorConfig()
+                editorState.editorConfigLoaded?.await()?.let { applySettings(it) }
+            }
+
+            val isTxtFile = file?.getName()?.endsWith(".txt") ?: (fallbackExtension == "txt")
+            if (Settings.word_wrap_text && isTxtFile) {
+                setWordwrap(true, true, true)
+            }
+        }
+    }
+
+    suspend fun loadEditorConfig() {
+        val file = file
+        if (!Settings.enable_editorconfig || file == null) {
+            editorState.editorConfigLoaded = null
+            return
+        }
+
+        val deferred = CompletableDeferred<ResourceProperties>()
+        editorState.editorConfigLoaded = deferred
+
+        withContext(Dispatchers.IO) {
+            val cache = Caches.permanent()
+            val loader = EditorConfigLoader.default_()
+            val propService =
+                ResourcePropertiesService.builder()
+                    .apply {
+                        cache(cache)
+                        loader(loader)
+                        file.getParentFile()?.getAbsolutePath()?.let {
+                            rootDirectory(ResourcePath.ResourcePaths.ofPath(Paths.get(it), charset))
+                        }
+                    }
+                    .build()
+            val props =
+                propService.queryProperties(Resource.Resources.ofPath(Paths.get(file.getAbsolutePath()), charset))
+            deferred.complete(props)
+
+            val editorConfigCharset = props.getValue(PropertyType.charset, null, false)
+            editorConfigCharset?.let { charset = Charset.forName(it) }
+        }
+    }
+
+    fun refresh() {
+        val file = file ?: return
+        scope.launch(Dispatchers.IO) {
+            if (!file.exists() || !file.canRead()) return@launch
+
+            val newDiskState = readDiskState(file)
+            val newContent = file.getInputStream().use { ContentIO.createFrom(it, charset) }
+
+            withContext(Dispatchers.Main) {
+                editorState.updateLock.withLock {
+                    editorState.content = newContent
+                    editorState.editor.get()?.setText(newContent)
+                    editorState.updateUndoRedo()
+                    editorState.isDirty = false
+                }
+                diskState = newDiskState
+            }
+        }
+    }
+
+    private suspend fun readDiskState(file: FileObject): DiskState? {
+        return runCatching {
+            DiskState(file.getAbsolutePath(), file.lastModified(), file.length())
+        }
+            .getOrNull()
+    }
+
+    /**
+     * Whether the file on disk no longer matches the recorded [diskState]. Returns `false` whenever the check can't be
+     * made reliably (no record, no mtime available, file was moved or renamed), so saving is never blocked by it.
+     */
+    private suspend fun hasChangedOnDisk(file: FileObject): Boolean {
+        val recorded = diskState ?: return false
+        if (recorded.path != file.getAbsolutePath()) return false
+        val current = readDiskState(file) ?: return false
+        return current != recorded
+    }
+
+    /**
+     * Reloads this tab from disk if the file was changed externally and the buffer has no unsaved edits. Dirty tabs,
+     * tabs with a pending auto-save and tabs with an open conflict dialog are never touched.
+     */
+    suspend fun refreshIfChangedOnDisk() {
+        val file = file ?: return
+        editorState.contentRendered.await()
+
+        if (isTemp || editorState.isDirty || editorState.showDiskConflictDialog) return
+        if (autoSaveJob?.isActive == true) return
+        if (!hasChangedOnDisk(file)) return
+        if (!file.exists() || !file.canRead()) return
+
+        refresh()
+        Events.publish(EditorTabEvent.Refreshed(this))
+    }
+
+    private fun reloadFromDisk() {
+        editorState.showDiskConflictDialog = false
+        autoSaveJob?.cancel()
+        refresh()
+        scope.launch { Events.publish(EditorTabEvent.Refreshed(this@EditorTab)) }
+    }
+
+    private fun overwriteDisk() {
+        editorState.showDiskConflictDialog = false
+        val file = file ?: return
+        scope.launch(Dispatchers.IO) {
+            saveMutex.withLock {
+                if (!write(checkConflict = false)) return@withLock
+                searchViewModel.get()?.syncIndex(file)
+                Events.publish(EditorTabEvent.Saved(this@EditorTab, file, false))
+            }
+        }
+    }
+
+    private val saveMutex = Mutex()
+
+    /**
+     * Writes the buffer to [file].
+     *
+     * When [checkConflict] is true and the file was changed on disk since it was loaded or last saved, nothing is
+     * written: the buffer is marked dirty and the user is asked whether to reload, overwrite or cancel.
+     *
+     * @return `true` if the buffer was written.
+     */
+    private suspend fun write(checkConflict: Boolean = true): Boolean {
+        val file = file ?: return false
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                    if (!file.canWrite()) {
+                        errorDialog(strings.cant_write)
+                        return@withContext false
+                    }
+
+                    if (checkConflict && hasChangedOnDisk(file)) {
+                        editorState.isDirty = true
+                        editorState.showDiskConflictDialog = true
+                        return@withContext false
+                    }
+
+                    val editor = editorState.editor.get() ?: return@runCatching false
+                    val content = editor.text.toString()
+                    val normalizedContent = editor.lineEnding.applyOn(content)
+                    file.writeText(normalizedContent, charset)
+
+                    editorState.isDirty = false
+                    diskState = readDiskState(file)
+                    lspConnector?.notifySave()
+                    true
+                }
+                .onFailure { errorDialog(throwable = it) }
+                .getOrDefault(false)
+        }
+    }
+
+    suspend fun quickSave() = saveMutex.withLock {
+        if (isReadOnly) return@withLock
+        if (isTemp) return@withLock
+        val file = file ?: return@withLock
+
+        if (!write()) return@withLock
+
+        searchViewModel.get()?.syncIndex(file)
+        Events.publish(EditorTabEvent.Saved(this, file, true))
+    }
+
+    fun saveAs() {
+        val file = file
+        val extension = FileTypeManager.fromScope(editorState.textmateScope).extensions.firstOrNull() ?: "txt"
+        val defaultName = file?.getName() ?: "$title.$extension"
+
+        MainActivity.instance?.apply {
+            fileManager.createNewFile(mimeType = "*/*", title = defaultName) {
+                if (it != null) {
+                    this@EditorTab.file = it
+                    title = it.getName()
+                    editorState.textmateScope = FileTypeManager.fromFileName(it.getName()).textmateScope
+
+                    scope.launch {
+                        // The user explicitly picked this destination, so there is nothing to protect on it
+                        if (!write(checkConflict = false)) return@launch
+                        searchViewModel.get()?.syncIndex(it)
+                        Events.publish(EditorTabEvent.Saved(this@EditorTab, it, false))
+                    }
+                }
+            }
+        }
+    }
+
+    //NOTE: save func I'll edit so it edit my database
+    suspend fun save() = saveMutex.withLock {
+        if (isReadOnly) return@withLock
+        val editor = editorState.editor.get()
+        if (Settings.format_on_save && editor != null && !editor.isFormatting && editor.hasFormatter()) {
+            val deferred = CompletableDeferred<Boolean>()
+            editorState.formatDeferred = deferred
+
+            registerTask(FORMAT_DOCUMENT_TASK_ID)
+            editor.formatCodeAsync()
+            withTimeoutOrNull(10.seconds) { deferred.await() }
+            unregisterTask(FORMAT_DOCUMENT_TASK_ID)
+        }
+
+        if (isTemp) {
+            withContext(Dispatchers.Main) { saveAs() }
+            return@withLock
+        }
+        val file = file ?: return@withLock
+
+        if (!write()) return@withLock
+
+        searchViewModel.get()?.syncIndex(file)
+        Events.publish(EditorTabEvent.Saved(this, file, false))
+        //NOTE: update pdfmaker database here
+        CoroutineScope(Dispatchers.IO).launch {
+            val fileEntity: FileEntity = viewModel.dataBase.workSpaceDao().getFileEntity(file.getAbsolutePath(),file.getName())
+            fileEntity.lastModified = file.lastModified()?.toLong()!!
+            fileEntity.date = System.currentTimeMillis()
+            fileEntity.setSize(file.length())
+            viewModel.fileTools.updateFile(fileEntity, false, null)
+        }
+
+        Settings.saves += 1
+        MainActivity.instance?.handleSupport()
+    }
+
+    @XedExtensionPoint
+    suspend fun withTask(block: suspend () -> Unit) {
+        val uniqueId = UUID.randomUUID().toString()
+
+        registerTask(uniqueId)
+        try {
+            block()
+        } finally {
+            unregisterTask(uniqueId)
+        }
+    }
+
+    @XedExtensionPoint
+    fun registerTask(id: String) {
+        activeTasks.add(id)
+    }
+
+    @XedExtensionPoint
+    fun unregisterTask(id: String) {
+        activeTasks.remove(id)
+    }
+
+    fun isTaskInProcess() = activeTasks.isNotEmpty()
+
+    @Composable
+    override fun Content() {
+        key(refreshKey) {
+            LaunchedEffect(editorState.editable) { editorState.editor.get()?.editable = editorState.editable }
+
+            Column {
+                if (editorState.showDiskConflictDialog) {
+                    DiskConflictDialog(
+                        fileName = file?.getName() ?: title,
+                        onReload = ::reloadFromDisk,
+                        onOverwrite = ::overwriteDisk,
+                        onCancel = { editorState.showDiskConflictDialog = false },
+                    )
+                }
+
+                if (editorState.showFindingsDialog) {
+                    FindingsDialog(
+                        title = editorState.findingsTitle,
+                        codeItems = editorState.findingsItems,
+                        description = editorState.findingsDescription,
+                        onFinish = { editorState.showFindingsDialog = false },
+                    )
+                }
+
+                if (editorState.showRenameDialog) {
+                    SingleInputDialog(
+                        title = stringResource(strings.rename_symbol),
+                        inputLabel = stringResource(strings.new_name),
+                        inputValue = editorState.renameValue,
+                        errorMessage = editorState.renameError,
+                        confirmEnabled = editorState.renameValue.isNotBlank(),
+                        onInputValueChange = {
+                            editorState.renameValue = it
+                            editorState.renameError = null
+                            if (editorState.renameValue.isBlank()) {
+                                editorState.renameError = strings.name_empty_err.getString()
+                            }
+                        },
+                        onConfirm = { editorState.renameConfirm?.let { it(editorState.renameValue) } },
+                        onFinish = {
+                            editorState.renameValue = ""
+                            editorState.renameError = null
+                            editorState.renameConfirm = null
+                            editorState.showRenameDialog = false
+                        },
+                    )
+                }
+
+                if (editorState.showJumpToLineDialog) {
+                    SingleInputDialog(
+                        title = stringResource(strings.jump_to_line),
+                        inputLabel = stringResource(strings.line_number),
+                        inputValue = editorState.jumpToLineValue,
+                        errorMessage = editorState.jumpToLineError,
+                        confirmEnabled = editorState.jumpToLineValue.isNotBlank(),
+                        onInputValueChange = {
+                            val editor = editorState.editor.get()
+                            val lastLine = editor?.lineCount ?: 0
+
+                            editorState.jumpToLineValue = it
+                            editorState.jumpToLineError = null
+
+                            val parts = it.split(":")
+
+                            val line = parts.getOrNull(0)?.toIntOrNull()
+                            val column = parts.getOrNull(1)?.toIntOrNull()
+
+                            when {
+                                line == null -> {
+                                    editorState.jumpToLineError = strings.value_invalid.getString()
+                                }
+
+                                column == null && parts.size > 1 -> {
+                                    editorState.jumpToLineError = strings.value_invalid.getString()
+                                }
+
+                                parts.size > 2 -> {
+                                    editorState.jumpToLineError = strings.value_invalid.getString()
+                                }
+
+                                line < 0 -> {
+                                    editorState.jumpToLineError = strings.value_invalid.getString()
+                                }
+
+                                column != null && column < 0 -> {
+                                    editorState.jumpToLineError = strings.value_invalid.getString()
+                                }
+                            }
+                        },
+                        onConfirm = {
+                            val editor = editorState.editor.get() ?: return@SingleInputDialog
+                            val parts = editorState.jumpToLineValue.split(":")
+
+                            val line =
+                                parts.getOrNull(0)?.toIntOrNull()?.minus(1)?.coerceIn(0, editor.text.lineCount - 1) ?: 0
+                            val maxColumn = editor.text.getColumnCount(line)
+                            val column = parts.getOrNull(1)?.toIntOrNull()?.minus(1)?.coerceIn(0, maxColumn) ?: 0
+
+                            editor.setSelection(line, column)
+                        },
+                        onFinish = {
+                            editorState.jumpToLineValue = ""
+                            editorState.jumpToLineError = null
+                            editorState.showJumpToLineDialog = false
+                        },
+                    )
+                }
+
+                Column(modifier = Modifier.animateContentSize()) {
+                    EditorSearchPanel(editorState = editorState)
+                    if (editorState.isSearching) {
+                        HorizontalDivider()
+                    }
+
+                    AnimatedVisibility(visible = isTaskInProcess()) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+
+                    editorState.notices.collectAsStateWithLifecycle().value.forEach { (id, notice) -> notice(id) }
+                }
+
+                val fileExtension = file?.getExtension() ?: fallbackExtension
+                val intelligentFeatures =
+                    IntelligentFeatureRegistry.allFeatures.filter { feature ->
+                        feature.supportedExtensions.contains(fileExtension) && feature.isEnabled()
+                    }
+
+                CodeEditor(
+                    modifier = Modifier.weight(1f),
+                    intelligentFeatures = intelligentFeatures,
+                    onTextChange = {
+                        if (Settings.auto_save && !isTemp && file != null) {
+                            autoSaveJob?.cancel()
+                            autoSaveJob =
+                                scope.launch(Dispatchers.IO) {
+                                    delay(Settings.auto_save_delay.milliseconds)
+                                    quickSave()
+                                }
+                        } else {
+                            editorState.isDirty = true
+                        }
+
+                        if (file?.getName() == ".editorconfig" && Settings.enable_editorconfig) {
+                            showNotice(EDITORCONFIG_NOTICE_KEY) { id -> EditorConfigNotice(id) }
+                        }
+                    },
+                )
+
+                val showColorPicker = editorState.showColorPicker
+                if (showColorPicker != null) {
+                    ColorPicker(
+                        initialColor = showColorPicker.first,
+                        initialFormat = showColorPicker.second,
+                        onApply = {
+                            val textRange = editorState.colorPickerRange ?: return@ColorPicker
+                            val editor = editorState.editor.get() ?: return@ColorPicker
+                            editor.text.replace(
+                                textRange.start.line,
+                                textRange.start.column,
+                                textRange.end.line,
+                                textRange.end.column,
+                                it,
+                            )
+                        },
+                    ) {
+                        editorState.showColorPicker = null
+                    }
+                }
+
+                if (Settings.show_extra_keys) {
+                    ExtraKeys(editorTab = this@EditorTab)
+                }
+
+                LaunchedEffect(
+                    editorState.textmateScope,
+                    refreshKey,
+                    LocalConfiguration.current,
+                    LocalContext.current,
+                    MaterialTheme.colorScheme,
+                ) {
+                    applyHighlightingAndConnectLSP()
+                }
+            }
+        }
+    }
+
+    override fun getState(): TabState? {
+        saveDocumentState()
+        val editor = editorState.editor.get() ?: return null
+        return EditorTabState(
+            fileObject = file,
+            projectRoot = projectRoot,
+            scopeRoot = scopeRoot,
+            content =
+                when {
+                    file == null -> editor.text.toString()
+                    editorState.isDirty -> editor.text.toString()
+                    else -> null
+                },
+            isDirty = editorState.isDirty,
+            isReadOnly = isReadOnly,
+            customTitle = customTitle,
+            fallbackExtension = fallbackExtension,
+            diskState = diskState,
+        )
+    }
+
+    private suspend fun restoreDocumentState() {
+        val file = file ?: return
+        editorState.contentRendered.await()
+        val editor = editorState.editor.get() ?: return
+
+        val db = DocumentStateDatabase.getDatabase(MainActivity.instance!!)
+        val state = db.documentStateDao().getState(file.getAbsolutePath())
+        if (state != null) {
+            val maxLine = editor.text.lineCount - 1
+            val lineLeft = state.cursorLineLeft.coerceAtMost(maxLine)
+            val lineRight = state.cursorLineRight.coerceAtMost(maxLine)
+
+            val maxColumnLeft = editor.text.getColumnCount(lineLeft)
+            val maxColumnRight = editor.text.getColumnCount(lineRight)
+            val columnLeft = state.cursorColumnLeft.coerceAtMost(maxColumnLeft)
+            val columnRight = state.cursorColumnRight.coerceAtMost(maxColumnRight)
+
+            editor.setSelectionRegion(lineLeft, columnLeft, lineRight, columnRight)
+            editor.scroller.startScroll(state.scrollX, state.scrollY, 0, 0)
+        }
+    }
+
+    private fun saveDocumentState() {
+        val file = file ?: return
+        val editor = editorState.editor.get() ?: return
+        val path = file.getAbsolutePath()
+        val cursor = editor.cursor
+        val scrollX = editor.scrollX
+        val scrollY = editor.scrollY
+
+        val state =
+            DocumentState(
+                path = path,
+                cursorLineLeft = cursor.leftLine,
+                cursorColumnLeft = cursor.leftColumn,
+                cursorLineRight = cursor.rightLine,
+                cursorColumnRight = cursor.rightColumn,
+                scrollX = scrollX,
+                scrollY = scrollY,
+                lastOpened = System.currentTimeMillis(),
+            )
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val db = DocumentStateDatabase.getDatabase(MainActivity.instance!!)
+            db.documentStateDao().insertState(state)
+        }
+    }
+
+    @Composable
+    override fun RowScope.Actions() {
+        EditorToolbarActions(viewModel = viewModel)
+    }
+
+    override val showGlobalActions: Boolean = false
+
+    override fun hashCode(): Int {
+        return file?.hashCode() ?: customTitle?.hashCode() ?: super.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is EditorTab) {
+            return false
+        }
+
+        return if (file != null && other.file != null) {
+            other.file == file
+        } else if (file == null && other.file == null) {
+            customTitle == other.customTitle
+        } else {
+            false
+        }
+    }
+
+    override fun toString(): String {
+        return "[EditorTab] ${file?.getAbsolutePath() ?: customTitle}"
+    }
+
+
+}

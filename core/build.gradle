@@ -1,0 +1,55 @@
+plugins{
+id "com.android.library"
+id 'androidx.room3'
+id 'com.google.dagger.hilt.android'
+id 'com.google.devtools.ksp'
+}
+
+android {
+compileSdkVersion 36
+namespace 'com.example.core'
+
+    defaultConfig {
+    minSdkVersion 26
+    targetSdkVersion 36
+    versionCode 1
+    versionName "1.0"
+
+    }
+    room3 {
+    schemaDirectory "$projectDir/schemas"
+    }
+
+    buildTypes {
+        release {
+        minifyEnabled false
+        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+}
+}
+compileOptions {
+sourceCompatibility JavaVersion.VERSION_1_8
+targetCompatibility JavaVersion.VERSION_1_8
+}
+buildFeatures{
+viewBinding true
+}
+}
+
+dependencies {
+//    implementation fileTree(dir: "libs", include: ["*.jar"])
+implementation 'androidx.appcompat:appcompat:1.8.0'
+implementation 'com.google.android.material:material:1.14.0'
+implementation 'androidx.viewpager2:viewpager2:1.1.0'
+implementation 'androidx.sqlite:sqlite-framework:2.7.1'
+implementation 'androidx.core:core-splashscreen:1.2.0'
+implementation "androidx.documentfile:documentfile:1.1.0"
+implementation 'org.apache.commons:commons-compress:1.28.0'
+implementation 'org.tukaani:xz:1.12'
+implementation 'androidx.dynamicanimation:dynamicanimation:1.1.0'
+testImplementation "junit:junit:4.13.2"
+implementation "androidx.room3:room3-runtime:3.0.3"
+ksp "androidx.room3:room3-compiler:3.0.3"
+implementation "com.google.dagger:hilt-android:2.60.1"
+ksp "com.google.dagger:hilt-compiler:2.60.1"
+implementation "androidx.lifecycle:lifecycle-livedata:2.10.0"
+}
