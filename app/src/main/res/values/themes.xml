@@ -6,7 +6,6 @@
         <item name="fontFamily">@font/arlrdbd</item>
         <item name="android:textColor">@color/txt</item>
         <item name="materialButtonStyle">@style/Widget.Material3.Button.PdfMaker</item>
-        <item name="android:windowTranslucentStatus">false</item>
         <item name="materialSearchBarStyle">@style/Widget.Material3.SearchBar.PdfMaker</item>
         <item name="toolbarStyle">@style/Widget.Material3.SearchView.Toolbar.PdfMaker</item>
         <item name="rippleColor">@android:color/darker_gray</item>

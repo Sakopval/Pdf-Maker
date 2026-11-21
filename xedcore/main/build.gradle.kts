@@ -157,7 +157,7 @@ dependencies {
     implementation(libs.ec4j.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.semver)
-    debugImplementation(libs.leakcanary)
+//    debugImplementation(libs.leakcanary)
     implementation(libs.junit)
 
     // Markdown rendering (Compose). This is a Kotlin Multiplatform library, but it publishes
