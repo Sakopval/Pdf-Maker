@@ -127,7 +127,7 @@ public class LatexSettings {
     }
 
     public File getPdfTeXBin() {
-        File path = new File(context.getApplicationInfo().nativeLibraryDir, "pdflatex.so");
+        File path = new File(context.getApplicationInfo().nativeLibraryDir, "libpdflatex.so");
         return path;
     }
 

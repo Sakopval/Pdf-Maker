@@ -99,13 +99,13 @@ tasks.register("copyNativeBinary", Copy) {
     eachFile { details ->
         String path = details.sourcePath
         if (path.contains("arm64-v8a")) {
-            details.relativePath = new org.gradle.api.file.RelativePath(true, "arm64-v8a", "pdflatex.so")
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "arm64-v8a", "libpdflatex.so")
         } else if (path.contains("armeabi-v7a")) {
-            details.relativePath = new org.gradle.api.file.RelativePath(true, "armeabi-v7a", "pdflatex.so")
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "armeabi-v7a", "libpdflatex.so")
         } else if (path.contains("x86_64")) {
-            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86_64", "pdflatex.so")
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86_64", "libpdflatex.so")
         } else if (path.contains("x86")) {
-            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86", "pdflatex.so")
+            details.relativePath = new org.gradle.api.file.RelativePath(true, "x86", "libpdflatex.so")
         } else {
             details.exclude()
         }

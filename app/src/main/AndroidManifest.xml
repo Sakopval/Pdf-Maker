@@ -10,6 +10,7 @@
     <application
         android:allowBackup="true"
         android:label="PDF Maker"
+        android:extractNativeLibs="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.Dark.NoActionBar.PdfMaker"
         android:icon="@mipmap/ic_launcher_round"
