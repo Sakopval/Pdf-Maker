@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.setPdfsList(dataBase.workSpaceDao().getAllPdfs());
             viewModel.setLogsList(dataBase.workSpaceDao().getAllLogs());
             viewModel.getPkgs().postValue(dataBase.workSpaceDao().getAllPkgs());
+            viewModel.getFonts().postValue(dataBase.workSpaceDao().getAllFonts());
             viewModel.getAllFiles().postValue(dataBase.workSpaceDao().getOnlyImportant());
             autoCompleteAdapter.setList(viewModel.getWorkSpaces());
         });
@@ -181,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(getApplicationContext(), com.rk.activities.main.MainActivity.class));
                 } else if (menuItem.getItemId() == R.id.pkgs) {
                     startActivity(new Intent(getApplicationContext(), PkgActivity.class));
+                } else if (menuItem.getItemId() == R.id.fonts) {
+                    startActivity(new Intent(getApplicationContext(), FontsActivity.class));
                 }
                 return false;
             }
@@ -219,6 +222,15 @@ public class MainActivity extends AppCompatActivity {
         activityMainBinding.navigationView.getMenu().findItem(R.id.pkgs).getIcon().setTintList(null);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             activityMainBinding.navigationView.getMenu().findItem(R.id.pkgs).getIcon().setTintBlendMode(null);
+        }
+
+        Drawable fontIcon = AppCompatResources.getDrawable(this, R.drawable.font);
+        activityMainBinding.navigationView.getMenu().findItem(R.id.fonts).setIcon(fontIcon);
+        activityMainBinding.navigationView.getMenu().findItem(R.id.fonts).getIcon().setTintMode(null);
+        activityMainBinding.navigationView.getMenu().findItem(R.id.fonts).getIcon().setTint(0);
+        activityMainBinding.navigationView.getMenu().findItem(R.id.fonts).getIcon().setTintList(null);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            activityMainBinding.navigationView.getMenu().findItem(R.id.fonts).getIcon().setTintBlendMode(null);
         }
 
         activityMainBinding.toolBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

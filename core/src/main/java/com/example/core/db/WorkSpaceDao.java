@@ -1,5 +1,6 @@
 package com.example.core.db;
 
+import android.graphics.fonts.Font;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -34,6 +35,8 @@ public interface WorkSpaceDao {
     void deleteFile(FileEntity file);
     @Delete
     void deletePkg(PkgEntity pkg);
+    @Delete
+    void deleteFont(FontEntity font);
 
     @Query("SELECT * FROM WorkSpaceEntity WHERE name = :name LIMIT 1")
     WorkSpaceEntity getWorkSpaceByName(String name);
@@ -43,11 +46,16 @@ public interface WorkSpaceDao {
     FileEntity getFileByName(String name);
     @Query("SELECT * FROM PkgEntity WHERE name = :name LIMIT 1")
     PkgEntity getPkgByName(String name);
+    @Query("SELECT * FROM FontEntity WHERE name = :name LIMIT 1")
+    FontEntity getFontByName(String name);
 
     @Query("SELECT EXISTS(SELECT 1 FROM WorkSpaceEntity WHERE name = :name LIMIT 1)")
     boolean workSpaceExists(String name);
     @Query("SELECT EXISTS(SELECT 1 FROM PkgEntity WHERE name = :name LIMIT 1)")
     boolean pkgExists(String name);
+    @Query("SELECT EXISTS(SELECT 1 FROM FontEntity WHERE name = :name LIMIT 1)")
+    boolean fontExists(String name);
+
 //    @Query("SELECT EXISTS(SELECT 1 FROM FileEntity WHERE name = :name LIMIT 1)")
 //    boolean FileExists(String name);
 
@@ -57,6 +65,8 @@ public interface WorkSpaceDao {
     void updateFileEntity(FileEntity file);
     @Update
     void updatePkgEntity(PkgEntity pkg);
+    @Update
+    void updateFontEntity(FontEntity font);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     long insertWorkSpace(WorkSpaceEntity workSpace);
@@ -66,9 +76,13 @@ public interface WorkSpaceDao {
     void insertFiles(List<FileEntity> fileEntities);
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertPkg(PkgEntity pkg);
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertFont(FontEntity font);
 
     @Query("SELECT * FROM PkgEntity")
     List<PkgEntity> getAllPkgs();
+    @Query("SELECT * FROM FontEntity")
+    List<FontEntity> getAllFonts();
     @Query("SELECT * FROM FileEntity WHERE LOWER(type) = 'pdf' OR LOWER(type) = '.pdf'")
     List<FileEntity> getAllPdfs();
     @Query("SELECT * FROM FileEntity WHERE LOWER(type) = 'log' OR LOWER(type) = '.log'")

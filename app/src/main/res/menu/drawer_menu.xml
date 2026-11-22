@@ -18,6 +18,12 @@
                 android:title="@string/packages" />
         </menu>
     </item>
+    <item android:title="@string/fonts" android:enabled="false">
+        <menu>
+            <item android:id="@+id/fonts"
+                android:title="@string/fonts" />
+        </menu>
+    </item>
     <item android:title="@string/editor" android:enabled="false">
         <menu>
             <item android:id="@+id/txt_editor"

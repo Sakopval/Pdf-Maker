@@ -76,6 +76,7 @@ public class PkgActivity extends AppCompatActivity {
                         //empty
                         handler.post(()->{
                             binding.noPkgsLay.setVisibility(View.VISIBLE);
+                            binding.pkgsRecycler.setVisibility(View.GONE);
                             binding.loadingLay.setVisibility(View.GONE);
                         });
                     }
@@ -128,7 +129,7 @@ public class PkgActivity extends AppCompatActivity {
         fileTools.getViewModel().getPkgs().observe(this, new Observer<List<PkgEntity>>() {
             @Override
             public void onChanged(List<PkgEntity> pkgEntities) {
-                searchAdapter.setPkgEntities(new MutableLiveData<>(pkgEntities));
+                adapter.setPkgEntities(new MutableLiveData<>(pkgEntities));
                 service.schedule(search, 300, TimeUnit.MILLISECONDS);
             }
         });

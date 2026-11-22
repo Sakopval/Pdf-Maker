@@ -12,6 +12,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.example.core.FileTools;
+import com.example.core.db.FontEntity;
 import com.example.core.db.PkgEntity;
 import com.example.pdfmaker.R;
 import com.example.core.db.AppDataBase;
@@ -447,6 +448,14 @@ public class LatexSettings {
         Path path = Paths.get(context.getFilesDir().getAbsolutePath(), "texmf","texmf-local", "tex","latex", "local");
         return path.toFile();
     }
+    public File getTexLocalFontOpenTypeDir(){
+        Path path = Paths.get(context.getFilesDir().getAbsolutePath(), "texmf","texmf-local","fonts", "opentype", "local");
+        return path.toFile();
+    }
+    public File getTexLocalFontTrueTypeDir(){
+        Path path = Paths.get(context.getFilesDir().getAbsolutePath(), "texmf","texmf-local","fonts", "truetype", "local");
+        return path.toFile();
+    }
 
     public void copyPkg(DocumentFile pkg, RelativeLayout loading) {
         loading.setVisibility(View.VISIBLE);
@@ -516,6 +525,99 @@ public class LatexSettings {
                     }
                 }
                 mainActivityViewModel.getPkgs().postValue(dataBase.workSpaceDao().getAllPkgs());
+                handler.post(()->{
+                    ((TextView) loading.findViewById(R.id.state_text)).setText("Copied Succesfully");
+                });
+                Thread.sleep(3000);
+                handler.post(()->{
+                    loading.setVisibility(View.GONE);
+                });
+            } catch (Exception e) {
+                handler.post(()->{
+                    loading.setVisibility(View.GONE);
+                });
+                Toast.makeText(context, "Filed to copy pkg", Toast.LENGTH_SHORT).show();
+                Log.e("CopyingPkg","", e);
+            }
+        });
+    }
+
+    public void copyFont(DocumentFile font, RelativeLayout loading, String type) {
+        loading.setVisibility(View.VISIBLE);
+        ((TextView) loading.findViewById(R.id.state_text)).setText("Copying");
+        File target;
+        if (type.equals("opentype")){
+            target = getTexLocalFontOpenTypeDir();
+        }else {
+            target = getTexLocalFontTrueTypeDir();
+        }
+        if (!font.isDirectory()){
+            Toast.makeText(context, "the pkg must be in a folder named with pkg name", Toast.LENGTH_LONG).show();
+            loading.setVisibility(View.GONE);
+            return;
+        }
+        if (font.listFiles().length == 0){
+            Toast.makeText(context, "Folder is empty", Toast.LENGTH_SHORT).show();
+            loading.setVisibility(View.GONE);
+            return;
+        }
+        poolExecutor.execute(()->{
+            try {
+                //check if first file is dir or not if not copy the whole folder else we should copy the directories inside
+                //as it should every folder to contain only files
+                //the folder should either contain the pkg itself (.sty file) or multiple folders each one resembles a pkg
+                for (DocumentFile file : font.listFiles()){
+                    if (file.isDirectory()){
+                        Log.d("CopyingFonts", file.getName()+" copying to: "+target.getAbsolutePath());
+                        boolean fontExists = dataBase.workSpaceDao().fontExists(file.getName());
+                        File copyTo = new File(target, file.getName());
+                        if (!copyTo.exists()){
+                            if (!copyTo.mkdirs()){
+                                Log.d("CopyingFonts", "Failed to copy " + file.getName());
+                                continue;
+                            }
+                        }
+                        fileTools.copyRecursive(file, copyTo);
+                        if (fontExists){
+                            FontEntity fontEntity = dataBase.workSpaceDao().getFontByName(file.getName());
+                            fontEntity.setDateAdded(System.currentTimeMillis());
+                            fontEntity.setSize(file.length());
+                            dataBase.workSpaceDao().updateFontEntity(fontEntity);
+                            Log.d("CopyingFonts", file.getName()+" copying to: "+copyTo.getAbsolutePath()+" its Path is: "+fontEntity.getPath()+" updated it");
+                        }
+                        else {
+                            FontEntity fontEntity = new FontEntity(file.lastModified(), file.getName(), file.length(),
+                                    Paths.get(target.getAbsolutePath(), file.getName()).toString());
+                            dataBase.workSpaceDao().insertFont(fontEntity);
+                            Log.d("CopyingPkgs", file.getName()+" copying to: "+copyTo.getAbsolutePath()+" its Path is: "+fontEntity.getPath()+ " newly created");
+                        }
+                    }else {
+                        //first file is regular file so it is one pkg so copy the folder only
+                        File copyTo = new File(target, font.getName());
+                        if (!copyTo.exists()){
+                            if(!copyTo.mkdirs()){
+                                Log.e("CopyingFont", "Failed to copy " + font.getName());
+                                break;
+                            }
+                        }
+                        fileTools.copyRecursive(font, copyTo);
+                        boolean pkgExists = dataBase.workSpaceDao().pkgExists(font.getName());
+                        if (pkgExists){
+                            FontEntity fontEntity = dataBase.workSpaceDao().getFontByName(font.getName());
+                            fontEntity.setDateAdded(System.currentTimeMillis());
+                            fontEntity.setSize(font.length());
+                            dataBase.workSpaceDao().updateFontEntity(fontEntity);
+                            Log.d("CopyingOneFont", file.getName()+" copying to: "+copyTo.getAbsolutePath()+" its Path is: "+fontEntity.getPath()+" updated it");
+                        }
+                        else {
+                            FontEntity fontEntity = new FontEntity(font.lastModified(), font.getName(), font.length(), Paths.get(target.getAbsolutePath(), font.getName()).toString());
+                            dataBase.workSpaceDao().insertFont(fontEntity);
+                            Log.d("CopyingOnePkg", file.getName()+" copying to: "+copyTo.getAbsolutePath()+" its Path is: "+fontEntity.getPath()+ " newly created");
+                        }
+                        break;
+                    }
+                }
+                mainActivityViewModel.getFonts().postValue(dataBase.workSpaceDao().getAllFonts());
                 handler.post(()->{
                     ((TextView) loading.findViewById(R.id.state_text)).setText("Copied Succesfully");
                 });

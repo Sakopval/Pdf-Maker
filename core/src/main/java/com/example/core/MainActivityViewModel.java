@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.core.db.FileEntity;
+import com.example.core.db.FontEntity;
 import com.example.core.db.PkgEntity;
 import com.example.core.db.WorkSpaceEntity;
 
@@ -27,6 +28,7 @@ public final class MainActivityViewModel extends ViewModel {
     private MutableLiveData<Boolean> kpathsea_depug = new MutableLiveData<>(false);
 
     private MutableLiveData<List<PkgEntity>> pkgs = new MutableLiveData<>(new ArrayList<>());
+    private MutableLiveData<List<FontEntity>> fonts = new MutableLiveData<>(new ArrayList<>());
 
 
 
@@ -87,5 +89,9 @@ public final class MainActivityViewModel extends ViewModel {
 
     public MutableLiveData<List<PkgEntity>> getPkgs() {
         return pkgs;
+    }
+
+    public MutableLiveData<List<FontEntity>> getFonts() {
+        return fonts;
     }
 }

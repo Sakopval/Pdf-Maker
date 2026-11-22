@@ -8,6 +8,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.documentfile.provider.DocumentFile;
 
+import com.example.pdfmaker.databinding.FontTypeChooserBinding;
 import com.example.pdfmaker.databinding.SettingActivityBinding;
 import com.example.core.FileTools;
 import com.example.pdfmaker.utils.LatexSettings;
@@ -37,7 +40,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class SettingsActivity extends AppCompatActivity {
     private SettingActivityBinding binding;
     private ActivityResultLauncher<Uri> addPkgLauncher;
-    private ActivityResultLauncher<String[]> addFontLauncher;
+    private ActivityResultLauncher<Uri> addFontLauncher;
     private final Context context = this;
     @Inject
     ThreadPoolExecutor poolExecutor;
@@ -57,6 +60,11 @@ public class SettingsActivity extends AppCompatActivity {
         addPkgLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), (uri)->{
             if (uri != null){
                 latexSettings.copyPkg(DocumentFile.fromTreeUri(this, uri), binding.loadingLay);
+            }
+        });
+        addFontLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), (uri)->{
+            if (uri != null){
+                showFontTypeDialog(uri);
             }
         });
         setContentView(binding.settingsActivity);
@@ -160,5 +168,50 @@ public class SettingsActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
+        binding.addAFontRely.setOnClickListener((v)->{
+            MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(binding.settingsActivity.getContext());
+            AlertDialog dialog = builder.create();
+            dialog.setTitle("Note!!");
+            dialog.setMessage("""
+                    Please Note that:
+                    1. To add a Font make sure that the font is inside a folder named with the same name of the font\
+                     to store it correctly.\
+                 
+                    2. And to add multiple fonts u must put each one as above in one folder and chose this folder that contains all fonts and make sure \
+                     that main folder only contains folders not files to store all ur fonts correctly.""");
+            dialog.setButton(DialogInterface.BUTTON_POSITIVE, "Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    addFontLauncher.launch(null);
+                }
+            });
+            dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
+        });
+    }
+
+    private void showFontTypeDialog(Uri uri){
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(binding.addAPackageRely.getContext());
+        AlertDialog dialog = builder.create();
+        dialog.setTitle("Choose font type");
+        FontTypeChooserBinding typeChooserBinding = FontTypeChooserBinding.inflate(getLayoutInflater());
+        dialog.setView(typeChooserBinding.getRoot());
+        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Ok", (d,w)->{
+            if (typeChooserBinding.getRoot().getCheckedRadioButtonId() == -1){
+                Toast.makeText(this, "u didn't choose a font type", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (typeChooserBinding.getRoot().getCheckedRadioButtonId() == R.id.open_type){
+                latexSettings.copyFont(DocumentFile.fromTreeUri(this, uri), binding.loadingLay, "opentype");
+            } else {
+                latexSettings.copyFont(DocumentFile.fromTreeUri(this, uri), binding.loadingLay, "truetype");
+            }
+        });
+        dialog.show();
     }
 }

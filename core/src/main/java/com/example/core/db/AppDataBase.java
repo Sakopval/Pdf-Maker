@@ -13,7 +13,7 @@ import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 
 @Database(
-        entities = {FileEntity.class, WorkSpaceEntity.class, PkgEntity.class},
+        entities = {FileEntity.class, WorkSpaceEntity.class, PkgEntity.class, FontEntity.class},
         version = 1,
         exportSchema = false
 )

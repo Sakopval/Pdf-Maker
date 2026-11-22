@@ -46,10 +46,14 @@
     <string name="new_workspace">New WorkSpace</string>
     <string name="you_don_t_have_any_packages">You don\'t have any packages</string>
     <string name="packages">Packages</string>
+    <string name="you_don_t_have_any_fonts">You don\'t have any fonts</string>
+    <string name="opentype_fonts_ending_with_otf">opentype\t (fonts ending with .otf)</string>
+    <string name="truetype_fonts_ending_with_ttf">truetype\t (fonts ending with .ttf)</string>
+    <string name="pdflatex">PdfLaTeX</string>
     <array name="compilers_list">
-        <item>pdflatex</item>
+        <item>PdfLaTeX</item>
 <!--        <item>latex</item>-->
-        <item>xelatex</item>
+        <item>XeLaTeX</item>
 <!--        <item>lualatex</item>-->
 <!--        <item>latexmk</item>-->
     </array>

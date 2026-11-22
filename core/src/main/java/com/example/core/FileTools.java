@@ -18,6 +18,7 @@ import androidx.documentfile.provider.DocumentFile;
 
 import com.example.core.db.AppDataBase;
 import com.example.core.db.FileEntity;
+import com.example.core.db.FontEntity;
 import com.example.core.db.PkgEntity;
 import com.example.core.db.WorkSpaceEntity;
 import com.google.android.material.loadingindicator.LoadingIndicator;
@@ -440,11 +441,15 @@ public class FileTools {
     public void deletePkg(PkgEntity pkg){
         File file = new File(pkg.getPath());
         if (!file.isDirectory()){
-            Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            handler.post(()->{
+                Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            });
             return;
         }
         if (file.listFiles() == null){
-            Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            handler.post(()->{
+                Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            });
             return;
         }
         boolean deleted = deleteAllFile(file);
@@ -453,6 +458,28 @@ public class FileTools {
             viewModel.getPkgs().postValue(appDataBase.workSpaceDao().getAllPkgs());
         }
         Log.d("DeletingPkg",deleted+" "+pkg.getName());
+
+    }
+    public void deleteFont(FontEntity font){
+        File file = new File(font.getPath());
+        if (!file.isDirectory()){
+            handler.post(()->{
+                Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+        if (file.listFiles() == null){
+            handler.post(()->{
+                Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+        boolean deleted = deleteAllFile(file);
+        if (deleted){
+            appDataBase.workSpaceDao().deleteFont(font);
+            viewModel.getFonts().postValue(appDataBase.workSpaceDao().getAllFonts());
+        }
+        Log.d("DeletingFont",deleted+" "+font.getName());
 
     }
 
