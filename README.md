@@ -44,9 +44,9 @@ Workflow shown:
 
 ```text
 ├── app/           # Main PDF Maker app (UI, workspaces, database, TeX runner)
-├── xededitor/    # Bundled Xed-Editor module (scoped to editing and saving files)
+├── xededitor/     # Bundled Xed-Editor module (scoped to editing and saving files)
 ├── soraX/         # Sora Editor engine used by Xed-Editor
-└── media/      # Screenshots and demo recording
+└── media/         # Screenshots and demo recording
 ```
 
 ### Why Xed-Editor is scoped
