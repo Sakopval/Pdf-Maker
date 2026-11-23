@@ -44,8 +44,8 @@ Workflow shown:
 
 ```text
 ├── app/           # Main PDF Maker app (UI, workspaces, database, TeX runner)
-├── xededitor/  # Bundled Xed-Editor module (scoped to editing and saving files)
-├── soraX/       # Sora Editor engine used by Xed-Editor
+├── xededitor/    # Bundled Xed-Editor module (scoped to editing and saving files)
+├── soraX/         # Sora Editor engine used by Xed-Editor
 └── media/      # Screenshots and demo recording
 ```
 
@@ -55,9 +55,9 @@ Workflow shown:
 - **Database integrity:** Xed-Editor can only save modified file contents. Workspace creation, file indexing, renaming, and deletion are handled exclusively by PDF Maker, so the database always matches the filesystem.
 ## Building from source
 
-- Android Studio with the NDK and CMake installed (NDK version: 29.0.14033849).
+- Android Studio with the NDK and CMake installed (NDK version: `29.0.14033849`).
 - The native `pdflatex` binary is built through CMake and packaged as `libpdflatex.so`, then run from the app's native library directory. Native libraries must be extracted (`useLegacyPackaging = true` and `android:extractNativeLibs="true"`).
-- Minimum Android version: 8.0 `Oreo`. Supported ABIs: 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'.
+- Minimum Android version: `8.0 Oreo`. Supported ABIs: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`.
 - The TeX tree (`texmf`) is copied to the app's private storage on first run.
 ## Licenses
 
