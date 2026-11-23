@@ -61,8 +61,6 @@ Workflow shown:
 - The TeX tree (`texmf`) is copied to the app's private storage on first run.
 ## Licenses
 
-## Licenses
-
 This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)** — see the [LICENSE](LICENSE) file for details.
 
 PDF Maker bundles third-party open-source components under their respective licenses:
