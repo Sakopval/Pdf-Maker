@@ -43,10 +43,14 @@ Workflow shown:
 ## Architecture
 
 ```text
-├── app/           # Main PDF Maker app (UI, workspaces, database, TeX runner)
-├── xededitor/     # Bundled Xed-Editor module (scoped to editing and saving files)
-├── soraX/         # Sora Editor engine used by Xed-Editor
-└── media/         # Screenshots and demo recording
+├── app/              # Main PDF Maker app (UI, workspaces, database, TeX runner)
+├── core/             # Core shared utilities, database models, and infrastructure
+├── xedcore/          # Core module from Xed-Editor (renamed from core)
+├── xededitor/        # Scoped Xed-Editor app module (renamed from app; editing & saving files)
+├── features/         # Scoped editor feature modules (runner, extensions)
+├── soraX/            # Sora Editor engine used by Xed-Editor
+├── baselineprofile/  # Baseline Profile module for startup & runtime optimization
+└── media/            # Screenshots and demo recording
 ```
 
 ### Why Xed-Editor is scoped
