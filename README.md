@@ -61,13 +61,16 @@ Workflow shown:
 - The TeX tree (`texmf`) is copied to the app's private storage on first run.
 ## Licenses
 
-PDF Maker bundles third-party components under their own licenses. Check each project's license file and make sure your release complies, including source availability where required.
+## Licenses
 
-- TeX Live / pdfTeX, kpathsea, and xpdf: see their respective licenses (pdfTeX and kpathsea include GPL/LGPL terms).
-- Xed-Editor: see its repository for license terms.
-- Sora Editor: see its repository for license terms.
-- libpng and zlib: permissive licenses.
-  Add a `LICENSE` file for PDF Maker itself.
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)** — see the [LICENSE](LICENSE) file for details.
+
+PDF Maker bundles third-party open-source components under their respective licenses:
+
+- [**Xed-Editor**](https://github.com/Xed-Editor/Xed-Editor) (`xededitor/`): Licensed under **GNU GPL v3.0**.
+- [**soraX**](https://github.com/Xed-Editor/soraX) / [**Sora Editor**](https://github.com/Rosemoe/sora-editor) (`soraX/`): Licensed under **GNU LGPL v2.1**.
+- [**TeX Live / pdfTeX, Kpathsea, and xpdf**](https://tug.org/texlive/): Licensed under **GNU GPL / LGPL** terms.
+- **libpng & zlib**: Licensed under permissive open-source licenses (`libpng` and `zlib` licenses).
 
 ## Acknowledgements
 
