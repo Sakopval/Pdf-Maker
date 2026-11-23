@@ -1,12 +1,16 @@
 # PDF Maker
 
-An offline Android LaTeX IDE and PDF compiler powered by **pdfTeX / XeTeX (TeX Live 2026)** and bundled with an integrated **Xed-Editor** (powered by **Sora Editor**) for seamless `.tex` editing, workspace management, and local PDF generation.
+An offline Android LaTeX IDE and PDF compiler powered by **pdfTeX / XeTeX (TeX Live 2026)** and bundled with an integrated **Xed-Editor** (powered by **Sora Editor / sorax**) for seamless `.tex` editing, workspace management, and local PDF generation.
+
+---
 
 ## Overview
 
 **PDF Maker** brings a complete, self-contained TeX Live distribution directly to Android, allowing you to write, compile, debug, and preview LaTeX documents without an internet connection.
 
 To keep project state, workspaces, and file metadata clean and reliable, **PDF Maker** maintains strict ownership over its internal database and workspace structure. While **Xed-Editor** (and its underlying **Sora Editor** engine) is bundled directly inside the app for rich code editing and log inspection, its file-system capabilities are intentionally scoped down to **editing and saving active files**—preventing external file-tree conflicts and keeping database management centralized within PDF Maker.
+
+---
 
 ## Key Features
 
@@ -17,33 +21,35 @@ To keep project state, workspaces, and file metadata clean and reliable, **PDF M
 * **Detailed Compilation Logs & Debugging:** Inspect full compilation outputs (`aki.log`, `aki_output.log`), toggle **Kpathsea Debug** mode, or reset the LaTeX directory tree anytime from Settings.
 * **Built-in PDF Viewing & Sharing:** Open compiled PDFs immediately inside the app or export/share them with external viewers.
 
+---
+
 ## Screenshots
 
-> **Note:** Place your screenshots inside a `media/` folder in the root of your repository so these Markdown image links render automatically.
-
-### Workspace, Compilation & PDF Output
+### Workspace, File Creation & Actions
 
 | Workspace & `.tex` Files | Create File & Workspace | Rename / File Actions |
 | :---: | :---: | :---: |
-| ![Workspace & .tex Files](media/Screenshot1.png) | ![Create File & Workspace](media/Screenshot2.png) | ![Rename / File Actions](media/Screenshot6.png) |
+| <img src="media/Screenshot1.png" width="240" alt="Workspace Files" /> | <img src="media/Screenshot2.png" width="240" alt="New File Dialog" /> | <img src="media/Screenshot6.png" width="240" alt="Rename PDF Dialog" /> |
 
-### TeX Engine, Packages & Settings
+### TeX Engine, Settings & Installed Packages
 
 | Compiler & App Settings | Bundled pdfTeX / TeX Live Info | Installed LaTeX Packages |
 | :---: | :---: | :---: |
-| ![Compiler & App Settings](media/Screenshot3.png) | ![Bundled pdfTeX / TeX Live Info](media/Screenshot4.png) | ![Installed LaTeX Packages](media/Screenshot5.png) |
+| <img src="media/Screenshot3.png" width="240" alt="Settings Screen" /> | <img src="media/Screenshot4.png" width="240" alt="PdfTeX Version" /> | <img src="media/Screenshot5.png" width="240" alt="Installed Packages" /> |
+
+---
 
 ## Demo Walkthrough
 
-If you include a screen recording in `media/Record.mp4` (or convert it to a GIF), you can link or embed it here:
+* **Full App Demo Recording:** [`media/Record.mp4`](media/Record.mp4)
 
-* [Watch Full App Demo Video](media/Record.mp4)
-
-**Workflow shown in demo:**
+**Workflow demonstrated:**
 1. Select a `.tex` source file from the workspace (`aki.tex`) and tap **Compile**.
 2. Switch to the **PDFS** tab to view the generated `aki.pdf` (`166 KB`).
 3. Open and preview the rendered multi-page PDF document.
 4. Open the navigation drawer $\rightarrow$ **Logs** to inspect `aki_output.log` inside the bundled editor.
+
+---
 
 ## Architecture & Repository Structure
 
@@ -57,13 +63,19 @@ This repository combines **PDF Maker** with its embedded editing components in a
 ```
 
 ### Why Xed-Editor is Scoped
-
 * **Single-App Experience:** Users never need to switch between external apps to edit `.tex` files or inspect `.log` outputs.
 * **Database Integrity:** Xed-Editor's file management features are intentionally limited to saving modified file contents. All workspace creation, file indexing, renaming, and deletion are handled exclusively by **PDF Maker** so the local database stays synchronized with the filesystem.
 
-## Acknowledgements & Attributions
+---
 
-* [**TeX Live / pdfTeX**](https://tug.org/texlive/) — Underlying TeX typesetting engine (`Han The Thanh et al.`).
-* [**Xed-Editor**](https://github.com/Xed-Editor/Xed-Editor) — Integrated Android text/code editor module.
-* [**Sora Editor**](https://github.com/Rosemoe/sora-editor) — High-performance code editor component powering Xed-Editor.
-* [**Flaticon**](https://www.flaticon.com/) — App icons, file type badges (`.tex`, `.pdf`, `.log`), and UI graphics used throughout the interface.
+## Attributions & Credits
+
+* **Icons:** App icons, file badges (`.tex`, `.pdf`, `.log`), and UI icons provided by [**Flaticon**](https://www.flaticon.com/).
+* **TeX Engine:** [**TeX Live / pdfTeX**](https://tug.org/texlive/) (`Han The Thanh et al.`).
+* **Code Editor:** [**Xed-Editor**](https://github.com/Xed-Editor/Xed-Editor) & [**Sora Editor**](https://github.com/Rosemoe/sora-editor).
+
+---
+
+## Contributing
+
+Contributions, bug reports, and feature requests are welcome! Feel free to open an issue or submit a pull request on GitHub.
