@@ -75,11 +75,11 @@ PDF Maker bundles third-party components under their own licenses. Check each pr
 - [Xed-Editor](https://github.com/Xed-Editor/Xed-Editor): the integrated Android code editor module.
 - [Sora Editor](https://github.com/Rosemoe/sora-editor): the editor component powering Xed-Editor.
 - [Flaticon](https://www.flaticon.com/): app icons, file-type badges (`.tex`, `.pdf`, `.log`), and UI graphics :
--- <a href="https://www.flaticon.com/free-icons/log" title="log icons"> Log icons created by Vectors Tank - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/log-file" title="log file icons">Log file icons created by Flat Icons - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/workspace" title="workspace icons">Workspace icons created by Yudhi Restu - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/font" title="font icons">Font icons created by surang - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/workspace" title="workspace icons">Workspace icons created by Magnific - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by Good Ware - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/files-and-folders" title="files and folders icons">Files and folders icons created by The Chohans - Flaticon</a>
--- <a href="https://www.flaticon.com/free-icons/pdf" title="pdf icons">Pdf icons created by Dimitry Miroliubov - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/log" title="log icons"> Log icons created by Vectors Tank - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/log-file" title="log file icons">Log file icons created by Flat Icons - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/workspace" title="workspace icons">Workspace icons created by Yudhi Restu - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/font" title="font icons">Font icons created by surang - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/workspace" title="workspace icons">Workspace icons created by Magnific - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/box" title="box icons">Box icons created by Good Ware - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/files-and-folders" title="files and folders icons">Files and folders icons created by The Chohans - Flaticon</a>
+  - <a href="https://www.flaticon.com/free-icons/pdf" title="pdf icons">Pdf icons created by Dimitry Miroliubov - Flaticon</a>
